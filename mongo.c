@@ -13,7 +13,7 @@
 #include <vdr/plugin.h>
 
 static const char *VERSION        = "0.0.1";
-static const char *DESCRIPTION    = trNOOP("EPG handler for events with table id 0x00");
+static const char *DESCRIPTION    = trNOOP("EPG handler for mongodb backend");
 
 // --- cTable0Handler --------------------------------------------------------
 
@@ -32,11 +32,22 @@ public:
     virtual bool SetContents(cEvent *Event, uchar *Contents);
     virtual bool SetParentalRating(cEvent *Event, int ParentalRating);
     virtual bool SetVps(cEvent *Event, time_t Vps);
-    virtual bool FixEpgBugs(cEvent *Event);
+    virtual bool HandleEvent(cEvent *Event);
 };
 
-cMongoHandler::cMongoHandler() {
+cMongoHandler::cMongoHandler()
+{
     c.connect("localhost");
+
+    mongo::BSONObjBuilder b;
+    b.genOID();
+    b.append("title", "Test");
+    b.append("description", "RAVE");
+    mongo::BSONObj p = b.obj();
+
+    c.insert("tutorial.persons", p);
+
+    dsyslog("Mongo: cMongoHandler::SetDescription connected");
 }
 
 bool cMongoHandler::SetEventID(cEvent *Event, tEventID EventID)
@@ -85,12 +96,11 @@ bool cMongoHandler::SetVps(cEvent *Event, time_t Vps)
     return true;
 }
 
-bool cMongoHandler::FixEpgBugs(cEvent *Event)
+bool cMongoHandler::HandleEvent(cEvent *Event)
 {
+    dsyslog("Mongo: cMongoHandler::HandleEvent");
     return true;
 }
-
-// --- cPluginEpgtableid0 ----------------------------------------------------
 
 class cPluginMongo : public cPlugin {
 public:
