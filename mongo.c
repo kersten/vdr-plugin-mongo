@@ -6,81 +6,88 @@
  * $Id: epgtableid0.c 1.1 2012/03/10 15:10:43 kls Exp $
  */
 
+#include <iostream>
+#include <client/dbclient.h>
+
 #include <vdr/epg.h>
 #include <vdr/plugin.h>
 
-#include <iostream>
-#include "client/dbclient.h"
-
 static const char *VERSION        = "0.0.1";
-static const char *DESCRIPTION    = "EPG handler for events with table id 0x00";
+static const char *DESCRIPTION    = trNOOP("EPG handler for events with table id 0x00");
 
 // --- cTable0Handler --------------------------------------------------------
 
 class cMongoHandler : public cEpgHandler {
 private:
-  bool Ignore(cEvent *Event) { return Event->TableID() == 0x00; }
+    bool Ignore(cEvent *Event) { return Event->TableID() == 0x00; }
+    mongo::DBClientConnection c;
 public:
-  virtual bool SetEventID(cEvent *Event, tEventID EventID);
-  virtual bool SetStartTime(cEvent *Event, time_t StartTime);
-  virtual bool SetDuration(cEvent *Event, int Duration);
-  virtual bool SetTitle(cEvent *Event, const char *Title);
-  virtual bool SetShortText(cEvent *Event, const char *ShortText);
-  virtual bool SetDescription(cEvent *Event, const char *Description);
-  virtual bool SetContents(cEvent *Event, uchar *Contents);
-  virtual bool SetParentalRating(cEvent *Event, int ParentalRating);
-  virtual bool SetVps(cEvent *Event, time_t Vps);
-  virtual bool FixEpgBugs(cEvent *Event);
-  };
+    cMongoHandler();
+    virtual bool SetEventID(cEvent *Event, tEventID EventID);
+    virtual bool SetStartTime(cEvent *Event, time_t StartTime);
+    virtual bool SetDuration(cEvent *Event, int Duration);
+    virtual bool SetTitle(cEvent *Event, const char *Title);
+    virtual bool SetShortText(cEvent *Event, const char *ShortText);
+    virtual bool SetDescription(cEvent *Event, const char *Description);
+    virtual bool SetContents(cEvent *Event, uchar *Contents);
+    virtual bool SetParentalRating(cEvent *Event, int ParentalRating);
+    virtual bool SetVps(cEvent *Event, time_t Vps);
+    virtual bool FixEpgBugs(cEvent *Event);
+};
+
+cMongoHandler::cMongoHandler() {
+    c.connect("localhost");
+}
 
 bool cMongoHandler::SetEventID(cEvent *Event, tEventID EventID)
 {
-  return Ignore(Event);
+    return true;
 }
 
 bool cMongoHandler::SetStartTime(cEvent *Event, time_t StartTime)
 {
-  return Ignore(Event);
+    return true;
 }
 
 bool cMongoHandler::SetDuration(cEvent *Event, int Duration)
 {
-  return Ignore(Event);
+    return true;
 }
 
 bool cMongoHandler::SetTitle(cEvent *Event, const char *Title)
 {
-  return Ignore(Event);
+    dsyslog("Mongo: cMongoHandler::SetDescription  %s", Event->Title());
+    return true;
 }
 
 bool cMongoHandler::SetShortText(cEvent *Event, const char *ShortText)
 {
-  return Ignore(Event);
+    return true;
 }
 
 bool cMongoHandler::SetDescription(cEvent *Event, const char *Description)
 {
-  return Ignore(Event);
+    return true;
 }
 
 bool cMongoHandler::SetContents(cEvent *Event, uchar *Contents)
 {
-  return Ignore(Event);
+    return true;
 }
 
 bool cMongoHandler::SetParentalRating(cEvent *Event, int ParentalRating)
 {
-  return Ignore(Event);
+    return true;
 }
 
 bool cMongoHandler::SetVps(cEvent *Event, time_t Vps)
 {
-  return Ignore(Event);
+    return true;
 }
 
 bool cMongoHandler::FixEpgBugs(cEvent *Event)
 {
-  return Ignore(Event);
+    return true;
 }
 
 // --- cPluginEpgtableid0 ----------------------------------------------------
@@ -99,25 +106,3 @@ bool cPluginMongo::Initialize(void)
 }
 
 VDRPLUGINCREATOR(cPluginMongo); // Don't touch this!
-
-#include <iostream>
-#include "client/dbclient.h"
-
-#include <vdr/epg.h>
-
-class cMongoEpgHandler : public cEpgHandler {
-public:
-    cMongoEpgHandler();
-    virtual bool SetDescription(cEvent *Event, const char *Description);
-};
-
-cMongoEpgHandler::cMongoEpgHandler() {
-    mongo::DBClientConnection c;
-    c.connect("localhost");
-}
-
-bool cMongoEpgHandler::SetDescription(cEvent *Event, const char *Description)
-{
-    Event->SetDescription(DescriptionFromDatabase(Event));
-    return true;
-}
